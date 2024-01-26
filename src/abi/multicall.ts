@@ -2,9 +2,9 @@ import { ethers } from "ethers";
 import { getProvider, Chain } from "../general";
 import convertResults from "./convertResults";
 import { call } from "./rpcCall";
-import { debugLog } from "../util/debugLog"
-import { runInPromisePool, sliceIntoChunks, } from "../util"
-import * as Tron from './tron'
+import { debugLog } from "../util/debugLog";
+import { runInPromisePool, sliceIntoChunks } from "../util";
+import * as Tron from "./tron";
 import { getEnvMulticallAddress } from "../util/env";
 
 export const MULTICALL_ADDRESS_MAINNET =
@@ -49,9 +49,9 @@ export default async function makeMultiCall(
   chain: Chain,
   block?: string | number,
 ) {
-  if (chain === 'tron') return Tron.multiCall(functionABI, calls)
+  if (chain === "tron") return Tron.multiCall(functionABI, calls);
   const contractInterface = new ethers.Interface([functionABI]);
-  let fd = contractInterface.fragments[0] as ethers.FunctionFragment
+  let fd = contractInterface.fragments[0] as ethers.FunctionFragment;
 
   const contractCalls = calls.map((call) => {
     const data = contractInterface.encodeFunctionData(fd, call.params);
@@ -65,12 +65,15 @@ export default async function makeMultiCall(
 
   return returnValues.map((values: any, index: number) => {
     let output: any;
-    let error = undefined
+    let error = undefined;
     try {
-      output = convertResults(contractInterface.decodeFunctionResult(fd, values), fd);
+      output = convertResults(
+        contractInterface.decodeFunctionResult(fd, values),
+        fd,
+      );
     } catch (e) {
       output = null;
-      error = e
+      error = e;
     }
     const res: any = {
       input: {
@@ -79,8 +82,8 @@ export default async function makeMultiCall(
       },
       success: output !== null,
       output,
-    }
-    if (error) res.error = error
+    };
+    if (error) res.error = error;
     return res;
   });
 }
@@ -91,7 +94,7 @@ async function executeCalls(
     data: string;
   }[],
   chain: Chain,
-  block?: string | number
+  block?: string | number,
 ) {
   if (await networkSupportsMulticall(chain)) {
     try {
@@ -106,7 +109,7 @@ async function executeCalls(
             type: "tuple[]",
           }),
         ],
-        [contractCalls.map((call) => [call.to, call.data])]
+        [contractCalls.map((call) => [call.to, call.data])],
       );
       const address = await multicallAddressOrThrow(chain);
 
@@ -117,47 +120,50 @@ async function executeCalls(
         data: callData,
       };
 
-      const returnData = await call(getProvider(chain), tx, block, chain)
+      const returnData = await call(getProvider(chain), tx, block, chain);
 
-      const [blockNumber, returnValues] = ethers.AbiCoder.defaultAbiCoder().decode(
-        ["uint256", "bytes[]"],
-        returnData
-      );
+      const [blockNumber, returnValues] =
+        ethers.AbiCoder.defaultAbiCoder().decode(
+          ["uint256", "bytes[]"],
+          returnData,
+        );
       return returnValues;
     } catch (e) {
       if (contractCalls.length > 10) {
-        const chunkSize = Math.ceil(contractCalls.length / 5)
-        const chunks = sliceIntoChunks(contractCalls, chunkSize)
-        debugLog(`Multicall failed, call size: ${contractCalls.length}, splitting into smaller chunks and trying again, new call size: ${chunks[0].length}`)
+        const chunkSize = Math.ceil(contractCalls.length / 5);
+        const chunks = sliceIntoChunks(contractCalls, chunkSize);
+        debugLog(
+          `Multicall failed, call size: ${contractCalls.length}, splitting into smaller chunks and trying again, new call size: ${chunks[0].length}`,
+        );
         const response = await runInPromisePool({
           items: chunks,
           concurrency: 2,
-          processor: (calls: any) => executeCalls(calls, chain, block)
-        })
-        return response.flat()
+          processor: (calls: any) => executeCalls(calls, chain, block),
+        });
+        return response.flat();
       }
-      debugLog("Multicall failed, defaulting to single transactions...")
+      debugLog("Multicall failed, defaulting to single transactions...");
     }
   }
 
   return runInPromisePool({
     items: contractCalls,
-    concurrency: await networkSupportsMulticall(chain) ? 2 : 10,
+    concurrency: (await networkSupportsMulticall(chain)) ? 2 : 10,
     processor: async ({ to, data }: any) => {
-      let result = null
+      let result = null;
       try {
-        result = await call(getProvider(chain), { to, data }, block, chain,);
+        result = await call(getProvider(chain), { to, data }, block, chain);
       } catch (e) {
-        debugLog(e)
+        debugLog(e);
       }
-      return result
-    }
-  })
+      return result;
+    },
+  });
 }
 
 export async function multicallAddressOrThrow(chain: Chain) {
-  const multicallEnv = getEnvMulticallAddress(chain)
-  if (multicallEnv) return multicallEnv
+  const multicallEnv = getEnvMulticallAddress(chain);
+  if (multicallEnv) return multicallEnv;
   const network = await getProvider(chain).getNetwork();
   const address = multicallAddress(network?.chainId);
   if (address === null) {
@@ -171,8 +177,8 @@ export async function multicallAddressOrThrow(chain: Chain) {
 const networkMulticallCache = {} as { [chain: string]: boolean };
 
 export async function networkSupportsMulticall(chain: Chain) {
-  const multicallEnv = getEnvMulticallAddress(chain)
-  if (multicallEnv) networkMulticallCache[chain] = true
+  const multicallEnv = getEnvMulticallAddress(chain);
+  if (multicallEnv) networkMulticallCache[chain] = true;
   if (!networkMulticallCache.hasOwnProperty(chain)) {
     const network = await getProvider(chain)?.getNetwork();
     const address = multicallAddress(network?.chainId);
@@ -283,18 +289,18 @@ function multicallAddress(chainId: number | BigInt) {
     case 40: // telos
       return "0x74D01B798F0aEdc39548D3EA5fC922B291293b95";
     case 2222:
-      return "0x30A62aA52Fa099C4B227869EB6aeaDEda054d121" // kava
+      return "0x30A62aA52Fa099C4B227869EB6aeaDEda054d121"; // kava
     case 47805:
-      return "0x9eE9904815B80C39C1a27294E69a8626EAa7952d" // rei network
+      return "0x9eE9904815B80C39C1a27294E69a8626EAa7952d"; // rei network
     case 87:
-      return "0x7A5a7579eb8DdEd352848cFDD0a5530C4e56FF7f" // nova
+      return "0x7A5a7579eb8DdEd352848cFDD0a5530C4e56FF7f"; // nova
     case 32520:
-      return "0x5AE90c229d7A8AFc12bFa263AC672548aEb1D765" // bitgert/brise
+      return "0x5AE90c229d7A8AFc12bFa263AC672548aEb1D765"; // bitgert/brise
     case 820: // callisto
     case 199: // bittorrent
-      return "0xB2fB6dA40DF36CcFFDc3B0F99df4871C7b86FCe7"
-    case 2000:  // dogechain
-      return "0x8856C24Ba82F737CFb99Ec4785CEe4d48A842F33"
+      return "0xB2fB6dA40DF36CcFFDc3B0F99df4871C7b86FCe7";
+    case 2000: // dogechain
+      return "0x8856C24Ba82F737CFb99Ec4785CEe4d48A842F33";
     // case 71394: // Godwoken v0 chain
     // return "0x285aF41aC18BA105407555f49c59c58574b8e284"
     case 71402: // Godwoken v1 chain
@@ -302,9 +308,9 @@ function multicallAddress(chainId: number | BigInt) {
     //   // https://github.com/mds1/multicall
     //   return "0xcA11bde05977b3631167028862bE2a173976CA11"
     case 96: // bitkub chain
-      return "0xcc515Aa7eE9Be4491c98DE68ee2147F0A063759D"
+      return "0xcc515Aa7eE9Be4491c98DE68ee2147F0A063759D";
     case 42170: // arbitrum nova chain
-      return "0x2fe78f55c39dc437c4c025f8a1ffc54edb4a34c3"
+      return "0x2fe78f55c39dc437c4c025f8a1ffc54edb4a34c3";
     case 55555: // reichain
       return "0x5CCBA81867AE1F9d470a9514fb9B175E84D47979";
     case 530: // functionx
@@ -312,27 +318,27 @@ function multicallAddress(chainId: number | BigInt) {
     case 1818: // cube
       return "0x28d2ebdb36369db1c51355cdc0898754d1a1c3c5";
     case 1234:
-      return "0x176CcFFbAB792Aaa0da7C430FE20a7106d969f66"
+      return "0x176CcFFbAB792Aaa0da7C430FE20a7106d969f66";
     case 53935: // dfk
-      return "0x5b24224dC16508DAD755756639E420817DD4c99E"
+      return "0x5b24224dC16508DAD755756639E420817DD4c99E";
     case 3000: // echelon
-      return "0xe6d0cEE385992029Cb64C94A2dF6d0331937B2C8"
+      return "0xe6d0cEE385992029Cb64C94A2dF6d0331937B2C8";
     case 55: // zyx
-      return "0xd0dd5446f58D6f4F4A669f289E4268c1b12AEc31"
+      return "0xd0dd5446f58D6f4F4A669f289E4268c1b12AEc31";
     case 420420: // kekchain
-      return "0x781bB181833986C78238228F9AF0891829AF922B"
+      return "0x781bB181833986C78238228F9AF0891829AF922B";
     case 2002: // milkomeda_a1
-      return "0x61EEE5a6c13c358101487f3b7c7Dd9863590C350"
+      return "0x61EEE5a6c13c358101487f3b7c7Dd9863590C350";
     case 20402: // muuchain
-      return "0xF8D7509aD8570b16dAd163A3841684f660fD9242"
+      return "0xF8D7509aD8570b16dAd163A3841684f660fD9242";
     case 14: // flare network
-      return "0x336897CAe2791048DA77EEa2A43BFB96342b9CE1"
+      return "0x336897CAe2791048DA77EEa2A43BFB96342b9CE1";
     case 383414847825: // zeniq
-      return "0x23c65A0E1aF27EFd46B60c43998682e1e322C6f6"
+      return "0x23c65A0E1aF27EFd46B60c43998682e1e322C6f6";
     case 4099: // bitindi
-      return "0xDF15De1fB392Ab10551afF1dDDDfAFFd228D7FE0"
+      return "0xDF15De1fB392Ab10551afF1dDDDfAFFd228D7FE0";
     case 22776: // map
-      return "0x6f13ad2bae66B5560c6157883a42B70085F9ca20"
+      return "0x6f13ad2bae66B5560c6157883a42B70085F9ca20";
     case 888888: // vision
       return "0x7a677A43eb6eEe4AB6c13872Abc04e1bA5CF88eD";
     case 1116: // core
@@ -363,12 +369,12 @@ function multicallAddress(chainId: number | BigInt) {
       return "0xC6a4B6667c44Fd56dC6E15C45108c4e8fC22F517";
     case 1012: // newton
       return "0x5c1537fd2B4e75D54f17535Cfd350b998068B04B";
-    case 1339:  // eon
-      return '0x952e846E505d4e4ddf579541A0d739f1681F2282';
+    case 1339: // eon
+      return "0x952e846E505d4e4ddf579541A0d739f1681F2282";
     case 34443: // mode
-      return '0xA1da7a7eB5A858da410dE8FBC5092c2079B58413';
+      return "0xA1da7a7eB5A858da410dE8FBC5092c2079B58413";
     case 42766: // zkfair
-      return '0x9eF6667974Fb12D07774221AAB1E90b2ec48896E';
+      return "0x9eF6667974Fb12D07774221AAB1E90b2ec48896E";
     default:
       return null;
   }

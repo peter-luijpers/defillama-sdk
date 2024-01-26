@@ -6,10 +6,10 @@ function fetchJson(url: string) {
 
 export interface TokenPrices {
   [token: string]:
-  | {
-    usd: number;
-  }
-  | undefined;
+    | {
+        usd: number;
+      }
+    | undefined;
 }
 
 export type GetCoingeckoLog = () => Promise<any>;
@@ -17,7 +17,7 @@ export type GetCoingeckoLog = () => Promise<any>;
 export async function makeCoingeckoCall(
   url: string,
   coingeckoMaxRetries: number,
-  getCoingeckoLock: GetCoingeckoLog
+  getCoingeckoLock: GetCoingeckoLog,
 ) {
   for (let j = 0; j < coingeckoMaxRetries; j++) {
     try {
@@ -38,7 +38,7 @@ export async function getTokenPrices(
   knownTokenPrices: TokenPrices,
   getCoingeckoLock: GetCoingeckoLog,
   coingeckoMaxRetries: number,
-  prefix: string = ""
+  prefix: string = "",
 ): Promise<TokenPrices> {
   const tokenPrices = {} as TokenPrices;
   const newIds = originalIds.slice(); // Copy
@@ -57,7 +57,7 @@ export async function getTokenPrices(
         .slice(i, i + 100)
         .join(",")}&vs_currencies=usd`,
       coingeckoMaxRetries,
-      getCoingeckoLock
+      getCoingeckoLock,
     );
     Object.assign(tokenPrices, tempTokenPrices);
     Object.entries(tempTokenPrices as Object).forEach((tokenPrice) => {
@@ -73,15 +73,16 @@ export async function getHistoricalTokenPrices(
   url: string,
   timestamp: number,
   getCoingeckoLock: GetCoingeckoLog,
-  coingeckoMaxRetries: number
+  coingeckoMaxRetries: number,
 ): Promise<TokenPrices> {
   const tokenPrices = {} as TokenPrices;
   for (const id of ids) {
     const range: any = await makeCoingeckoCall(
-      `${url}/${id.toLowerCase()}/market_chart/range?vs_currency=usd&from=${timestamp - secondsPerHalfDay
+      `${url}/${id.toLowerCase()}/market_chart/range?vs_currency=usd&from=${
+        timestamp - secondsPerHalfDay
       }&to=${timestamp + secondsPerHalfDay}`,
       coingeckoMaxRetries,
-      getCoingeckoLock
+      getCoingeckoLock,
     );
     if (range.error === undefined && range.prices?.length > 0) {
       let closest = range.prices[0];

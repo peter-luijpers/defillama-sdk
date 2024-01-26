@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 import { Chain } from "../general";
 import convertResults from "./convertResults";
-import makeMultiCallV2 from './multicall'
-import * as Tron from './tron'
-import { call } from './index'
+import makeMultiCallV2 from "./multicall";
+import * as Tron from "./tron";
+import { call } from "./index";
 // https://github.com/mds1/multicall
 // https://www.multicall3.com/deployments
-const MULTICALL_V3_ADDRESS = '0xca11bde05977b3631167028862be2a173976ca11'
+const MULTICALL_V3_ADDRESS = "0xca11bde05977b3631167028862be2a173976ca11";
 
 const DEPLOYMENT_BLOCK = {
   ethereum: 14353601,
@@ -85,8 +85,8 @@ const DEPLOYMENT_BLOCK = {
   callisto: 13811517,
   bittorrent: 31078552,
 } as {
-  [key: string | Chain]: number
-}
+  [key: string | Chain]: number;
+};
 
 export default async function makeMultiCall(
   functionABI: any,
@@ -97,13 +97,14 @@ export default async function makeMultiCall(
   chain: Chain,
   block?: string | number,
 ): Promise<any> {
-  if (chain === 'tron') return Tron.multiCall(functionABI, calls)
-  if (!functionABI) throw new Error('Missing ABI parameter')
-  if (calls.some(i => !i.contract)) throw new Error('Missing target, abi:' + functionABI)
+  if (chain === "tron") return Tron.multiCall(functionABI, calls);
+  if (!functionABI) throw new Error("Missing ABI parameter");
+  if (calls.some((i) => !i.contract))
+    throw new Error("Missing target, abi:" + functionABI);
   if (!isMulticallV3Supported(chain, block))
-    return makeMultiCallV2(functionABI, calls, chain, block)
-  const contractInterface = new ethers.Interface([functionABI])
-  let fd = contractInterface.fragments[0] as ethers.FunctionFragment
+    return makeMultiCallV2(functionABI, calls, chain, block);
+  const contractInterface = new ethers.Interface([functionABI]);
+  let fd = contractInterface.fragments[0] as ethers.FunctionFragment;
 
   const contractCalls = calls.map((call) => {
     const data = contractInterface.encodeFunctionData(fd, call.params);
@@ -113,62 +114,90 @@ export default async function makeMultiCall(
     };
   });
 
-  let returnValues: any
+  let returnValues: any;
   try {
-    await _call()
+    await _call();
   } catch (e) {
     // debugLog(chain, 'Multicall failed, retrying call...')
-    await _call()
+    await _call();
   }
 
   return returnValues.map(([success, values]: any, index: number) => {
-    let output = null
-    let error = null
+    let output = null;
+    let error = null;
     try {
-      output = convertResults(contractInterface.decodeFunctionResult(fd, values), fd);
-    } catch (e) { 
-      error = e
-      success = false
-     }
-     const res: any = {
+      output = convertResults(
+        contractInterface.decodeFunctionResult(fd, values),
+        fd,
+      );
+    } catch (e) {
+      error = e;
+      success = false;
+    }
+    const res: any = {
       input: {
         params: calls[index].params,
         target: calls[index].contract,
       },
-      success, output,
-    }
-    if (error) res.error = error
+      success,
+      output,
+    };
+    if (error) res.error = error;
     return res;
   });
 
   async function _call() {
-    const multicallAddress = getMulticallAddress(chain, block) as string
-    const { output: returnData } = await call({ chain, block, target: multicallAddress, abi: 'function tryAggregate(bool requireSuccess, tuple(address target, bytes callData)[] calls) payable returns (tuple(bool success, bytes returnData)[] returnData)', params: [false, contractCalls.map((call) => [call.to, call.data])] })
+    const multicallAddress = getMulticallAddress(chain, block) as string;
+    const { output: returnData } = await call({
+      chain,
+      block,
+      target: multicallAddress,
+      abi: "function tryAggregate(bool requireSuccess, tuple(address target, bytes callData)[] calls) payable returns (tuple(bool success, bytes returnData)[] returnData)",
+      params: [false, contractCalls.map((call) => [call.to, call.data])],
+    });
     returnValues = returnData;
   }
 }
 
 export function isMulticallV3Supported(chain: Chain, block?: string | number) {
-  const startBlock = DEPLOYMENT_BLOCK[chain]
-  if (!startBlock) return false
-  if (!block) return true
-  if (typeof block === 'string') return block === 'latest'
-  return block > startBlock
+  const startBlock = DEPLOYMENT_BLOCK[chain];
+  if (!startBlock) return false;
+  if (!block) return true;
+  if (typeof block === "string") return block === "latest";
+  return block > startBlock;
 }
 
 export function getMulticallAddress(chain: Chain, block?: string | number) {
-  if (!isMulticallV3Supported(chain, block)) return null
-  let multicallAddress = MULTICALL_V3_ADDRESS
+  if (!isMulticallV3Supported(chain, block)) return null;
+  let multicallAddress = MULTICALL_V3_ADDRESS;
   switch (chain) {
-    case 'onus': multicallAddress = '0x748c384f759cc596f0d9fa96dcabe8a11e443b30'; break;
-    case 'era': multicallAddress = '0xF9cda624FBC7e059355ce98a31693d299FACd963'; break;
-    case 'tron': multicallAddress = 'TEazPvZwDjDtFeJupyo7QunvnrnUjPH8ED'; break;
-    case 'op_bnb': multicallAddress = '0x5eF9501fE659b97C45f3A7efD298c14405b454D1'; break;
-    case 'beam': multicallAddress = '0x4956f15efdc3dc16645e90cc356eafa65ffc65ec'; break;
-    case 'nos': multicallAddress = '0x337F5fBB75007e59cC4A6132017Bd96748b09F7F'; break;
-    case 'chz': multicallAddress = '0x0E6a1Df694c4be9BFFC4D76f2B936bB1A1df7fAC'; break;
-    case 'lightlink_phoenix': multicallAddress = '0xb9a543d7B7dF05C8845AeA6627dE4a6622Ac863C'; break;
-    case 'eon': multicallAddress = '0x4ea6779581bDAcd376724A52070bE89FfB74eC39'; break;
+    case "onus":
+      multicallAddress = "0x748c384f759cc596f0d9fa96dcabe8a11e443b30";
+      break;
+    case "era":
+      multicallAddress = "0xF9cda624FBC7e059355ce98a31693d299FACd963";
+      break;
+    case "tron":
+      multicallAddress = "TEazPvZwDjDtFeJupyo7QunvnrnUjPH8ED";
+      break;
+    case "op_bnb":
+      multicallAddress = "0x5eF9501fE659b97C45f3A7efD298c14405b454D1";
+      break;
+    case "beam":
+      multicallAddress = "0x4956f15efdc3dc16645e90cc356eafa65ffc65ec";
+      break;
+    case "nos":
+      multicallAddress = "0x337F5fBB75007e59cC4A6132017Bd96748b09F7F";
+      break;
+    case "chz":
+      multicallAddress = "0x0E6a1Df694c4be9BFFC4D76f2B936bB1A1df7fAC";
+      break;
+    case "lightlink_phoenix":
+      multicallAddress = "0xb9a543d7B7dF05C8845AeA6627dE4a6622Ac863C";
+      break;
+    case "eon":
+      multicallAddress = "0x4ea6779581bDAcd376724A52070bE89FfB74eC39";
+      break;
   }
-  return multicallAddress
+  return multicallAddress;
 }

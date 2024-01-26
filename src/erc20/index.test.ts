@@ -26,7 +26,7 @@ test("totalSupply", async () => {
     await totalSupply({
       target: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
       block: 15997547,
-    })
+    }),
   ).toEqual({
     output: "23627251738981",
   });
@@ -38,7 +38,7 @@ test("balanceOf", async () => {
       target: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
       owner: "0x3FfBa143f5e69Aa671C9f8e3843C88742b1FA2D9",
       block: 9424627,
-    })
+    }),
   ).toEqual({
     output: "3914724000000000000",
   });

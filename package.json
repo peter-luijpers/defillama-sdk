@@ -7,7 +7,7 @@
     "start": "npm run build && node build/index.js",
     "build": "tsc",
     "watch": "tsc --watch",
-    "test": "LLAMA_DEBUG_MODE='' SDK_DEBUG='' jest",
+    "test": "LLAMA_DEBUG_MODE=false",
     "update-providers": "ts-node src/util/updateProviderList.ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "prepublishOnly": "npm run build"
@@ -28,6 +28,7 @@
     "axios": "^1.6.5",
     "ethers": "^6.0.0",
     "p-limit": "^3.0.0",
+    "prettier": "^3.2.4",
     "tron-format-address": "^0.1.11"
   },
   "devDependencies": {

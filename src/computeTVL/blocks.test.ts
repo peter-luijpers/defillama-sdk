@@ -10,11 +10,10 @@ test("multiple runs of getCurrentBlocks are fine", async () => {
 
 test("nahmii stopped producing new blocks", async () => {
   const calls: Promise<any>[] = [];
-  for (let i = 0; i < 3; i++)
-    calls.push(getCurrentBlocks(["nahmii"]));
+  for (let i = 0; i < 3; i++) calls.push(getCurrentBlocks(["nahmii"]));
 
   try {
-    await Promise.all(calls)
+    await Promise.all(calls);
     expect(true).toBe(false);
-  } catch (e) { }
+  } catch (e) {}
 });

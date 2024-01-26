@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { getEnvRPC } from "./env";
 
@@ -38,31 +37,68 @@ const endPoints: {
   archway: "https://api.mainnet.archway.io",
   sifchain: "https://sifchain-api.polkachu.com",
   nolus: "https://pirin-cl.nolus.network:1317",
-  bostrom: "https://lcd.bostrom.cybernode.ai"
+  bostrom: "https://lcd.bostrom.cybernode.ai",
 };
 
-const ibcChains = ['terra', 'terra2', 'crescent', 'osmosis', 'kujira', 'stargaze', 'juno', 'injective', 'cosmos', 'comdex', 'umee', 'orai', 'persistence', 'fxcore', 'neutron', 'quasar', 'chihuahua', 'sei', 'archway', 'migaloo', 'secret', 'aura', 'xpla', 'bostrom']
+const ibcChains = [
+  "terra",
+  "terra2",
+  "crescent",
+  "osmosis",
+  "kujira",
+  "stargaze",
+  "juno",
+  "injective",
+  "cosmos",
+  "comdex",
+  "umee",
+  "orai",
+  "persistence",
+  "fxcore",
+  "neutron",
+  "quasar",
+  "chihuahua",
+  "sei",
+  "archway",
+  "migaloo",
+  "secret",
+  "aura",
+  "xpla",
+  "bostrom",
+];
 
-export const isCosmosChain = (chain: string) => ibcChains.includes(chain) || !!endPoints[chain]
+export const isCosmosChain = (chain: string) =>
+  ibcChains.includes(chain) || !!endPoints[chain];
 
-export async function getCosmosBlock(block: number | string = 'latest', chain = 'cosmos') {
-  const endPoint = getEnvRPC(chain) || endPoints[chain] || 'https://rest.cosmos.directory/' + chain
+export async function getCosmosBlock(
+  block: number | string = "latest",
+  chain = "cosmos",
+) {
+  const endPoint =
+    getEnvRPC(chain) ||
+    endPoints[chain] ||
+    "https://rest.cosmos.directory/" + chain;
   try {
-    const { data } = await axios(`${endPoint}/blocks/${block}`)
-    const { block: { header: { height, time } } } = await data
+    const { data } = await axios(`${endPoint}/blocks/${block}`);
+    const {
+      block: {
+        header: { height, time },
+      },
+    } = await data;
     return {
       number: Number(height),
       timestamp: Math.floor(Date.parse(time) / 1000),
-    }
+    };
   } catch (e) {
     const message = `Error fetchin cosmos block -
-       chain: ${chain}, block: ${block}, endPoint: ${endPoint}, error: ${(e as any)?.message ?? JSON.stringify(e)}`
-    throw new Error(message)
+       chain: ${chain}, block: ${block}, endPoint: ${endPoint}, error: ${(e as any)?.message ?? JSON.stringify(e)}`;
+    throw new Error(message);
   }
 }
 
 export function getCosmosProvider(chain: string) {
   return {
-    getBlock: (block: number | string = 'latest') => getCosmosBlock(block, chain)
-  }
+    getBlock: (block: number | string = "latest") =>
+      getCosmosBlock(block, chain),
+  };
 }

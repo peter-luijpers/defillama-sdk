@@ -1,9 +1,9 @@
 import { getTimestamp } from "./util";
 
 test("imports", async () => {
-  const data = await import('./index')
-  const {providers, ...configCopy } = data.api2.config 
-  const dataCopy = { ...data, api2: { ...data.api2, config: configCopy } }
+  const data = await import("./index");
+  const { providers, ...configCopy } = data.api2.config;
+  const dataCopy = { ...data, api2: { ...data.api2, config: configCopy } };
   expect(dataCopy).toMatchInlineSnapshot(`
     {
       "Balances": [Function],

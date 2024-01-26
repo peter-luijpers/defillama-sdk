@@ -1,35 +1,34 @@
-import {
-  lookupBlock,
-  getLogs,
-  getLatestBlock,
-} from "./index";
+import { lookupBlock, getLogs, getLatestBlock } from "./index";
 
 import ChainApi from "../ChainApi";
 
-
 function getDiff(a: number, b: number): number {
-  return (a > b) ? a - b : b - a;
+  return a > b ? a - b : b - a;
 }
 
-
-
 test("zkfair - get token", async () => {
-  const api = new ChainApi({ chain: 'zkfair' })
-  const res = await api.call({ abi: 'address:token0', target: '0x1ED4b941ea37ad767FDd552f5A7115E83d3976AA' })
-  expect(res).toBe('0x1cD3E2A23C45A690a18Ed93FD1412543f464158F')
-  const res1 = await api.multiCall({ abi: 'address:token0', calls: ['0x1ED4b941ea37ad767FDd552f5A7115E83d3976AA'] })
-  expect(res1.length).toBe(1)
-  expect(res1[0]).toBe('0x1cD3E2A23C45A690a18Ed93FD1412543f464158F')
-})
+  const api = new ChainApi({ chain: "zkfair" });
+  const res = await api.call({
+    abi: "address:token0",
+    target: "0x1ED4b941ea37ad767FDd552f5A7115E83d3976AA",
+  });
+  expect(res).toBe("0x1cD3E2A23C45A690a18Ed93FD1412543f464158F");
+  const res1 = await api.multiCall({
+    abi: "address:token0",
+    calls: ["0x1ED4b941ea37ad767FDd552f5A7115E83d3976AA"],
+  });
+  expect(res1.length).toBe(1);
+  expect(res1[0]).toBe("0x1cD3E2A23C45A690a18Ed93FD1412543f464158F");
+});
 
 test("kava - get block", async () => {
-  await getLatestBlock('kava')
-  await lookupBlock(1669037786, { chain: 'kava' })
+  await getLatestBlock("kava");
+  await lookupBlock(1669037786, { chain: "kava" });
 });
 test("ChainApi - ethereum", async () => {
-  const ethApi = new ChainApi({ chain: 'ethereum', timestamp: 1669037786 })
-  const ethApi2 = new ChainApi({ chain: 'ethereum', timestamp: 1594112416 })
-  const ethApi3 = new ChainApi({ chain: 'ethereum', block: 42 })
+  const ethApi = new ChainApi({ chain: "ethereum", timestamp: 1669037786 });
+  const ethApi2 = new ChainApi({ chain: "ethereum", timestamp: 1594112416 });
+  const ethApi3 = new ChainApi({ chain: "ethereum", block: 42 });
 
   expect(getDiff(await ethApi.getBlock(), 16018720)).toBeLessThanOrEqual(100); // 50 blocks appromiates to 10 minute difference
   expect(getDiff(await ethApi2.getBlock(), 10411348)).toBeLessThanOrEqual(100); // 50 blocks appromiates to 10 minute difference
@@ -37,8 +36,8 @@ test("ChainApi - ethereum", async () => {
 });
 
 test("ChainApi - other chains", async () => {
-  const bscApi = new ChainApi({ chain: 'bsc', timestamp: 1638821718 })
-  const celoApi = new ChainApi({ chain: 'celo', timestamp: 1638821718 })
+  const bscApi = new ChainApi({ chain: "bsc", timestamp: 1638821718 });
+  const celoApi = new ChainApi({ chain: "celo", timestamp: 1638821718 });
 
   expect(getDiff(await bscApi.getBlock(), 13252691)).toBeLessThanOrEqual(500);
   expect(getDiff(await celoApi.getBlock(), 10248755)).toBeLessThanOrEqual(500);
@@ -57,68 +56,74 @@ test("lookupBlock", async () => {
 });
 
 test("lookupBlock bsc", async () => {
-  const block = await lookupBlock(1669051521, { chain: 'bsc' });
+  const block = await lookupBlock(1669051521, { chain: "bsc" });
   // Approximation, DP's sdk returns { timestamp: 1669051521, block: 23252691 }
   expect(getDiff(block.block, 23252691)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block.timestamp, 1669051521)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 
-  const block2 = await lookupBlock(1638821718, { chain: 'bsc' });
+  const block2 = await lookupBlock(1638821718, { chain: "bsc" });
   // Approximation, DP's sdk returns { timestamp: 1638821718, block: 13252691 }
   expect(getDiff(block2.block, 13252691)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block2.timestamp, 1638821718)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 });
 
 test("lookupBlock celo", async () => {
-  const block = await lookupBlock(1654822801, { chain: 'celo' });
+  const block = await lookupBlock(1654822801, { chain: "celo" });
   expect(getDiff(block.block, 13448723)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block.timestamp, 1654822801)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 
-  const block2 = await lookupBlock(1638821718, { chain: 'celo' });
+  const block2 = await lookupBlock(1638821718, { chain: "celo" });
   expect(getDiff(block2.block, 10248755)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block2.timestamp, 1638821718)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 });
 
 test("lookupBlock blockscout - kava", async () => {
-  const block = await lookupBlock(1668158653, { chain: 'kava' });
+  const block = await lookupBlock(1668158653, { chain: "kava" });
   expect(getDiff(block.block, 2308876)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block.timestamp, 1668158653)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 
-  const block2 = await lookupBlock(1700213053, { chain: 'kava' });
+  const block2 = await lookupBlock(1700213053, { chain: "kava" });
   expect(getDiff(block2.block, 7359940)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block2.timestamp, 1700213053)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 });
 
-
 test("lookupBlock blockscout - onus", async () => {
-  const block = await lookupBlock(1668158653, { chain: 'onus' });
+  const block = await lookupBlock(1668158653, { chain: "onus" });
   expect(getDiff(block.block, 116265)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block.timestamp, 1668158653)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 
-  const block2 = await lookupBlock(1700213053, { chain: 'onus' });
+  const block2 = await lookupBlock(1700213053, { chain: "onus" });
   expect(getDiff(block2.block, 10800303)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block2.timestamp, 1700213053)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 });
 
-
 test("lookupBlock blockscout - base", async () => {
-  const block2 = await lookupBlock(1700213053, { chain: 'base' });
+  const block2 = await lookupBlock(1700213053, { chain: "base" });
   expect(getDiff(block2.block, 6711853)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block2.timestamp, 1700213053)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 });
 
-
 test("lookupBlock blockscout - scroll", async () => {
-  const block2 = await lookupBlock(1700213053, { chain: 'scroll' });
+  const block2 = await lookupBlock(1700213053, { chain: "scroll" });
   expect(getDiff(block2.block, 860029)).toBeLessThanOrEqual(500); // 200 blocks appromiates to 10 minute difference
   expect(getDiff(block2.timestamp, 1700213053)).toBeLessThanOrEqual(15 * 60); // difference should be under 15 minutes
 });
 
 test("lookupBlock edgeCase", async () => {
-  const pZKEVMApi = new ChainApi({ chain: 'polygon_zkevm', timestamp: Math.floor((+new Date()) / 1e3) })
-  const evmosApi = new ChainApi({ chain: 'evmos', timestamp: Math.floor((+new Date()) / 1e3) })
-  const songbirdApi = new ChainApi({ chain: 'songbird', timestamp: Math.floor((+new Date()) / 1e3) })
-  await pZKEVMApi.getBlock()
-  await songbirdApi.getBlock()
+  const pZKEVMApi = new ChainApi({
+    chain: "polygon_zkevm",
+    timestamp: Math.floor(+new Date() / 1e3),
+  });
+  const evmosApi = new ChainApi({
+    chain: "evmos",
+    timestamp: Math.floor(+new Date() / 1e3),
+  });
+  const songbirdApi = new ChainApi({
+    chain: "songbird",
+    timestamp: Math.floor(+new Date() / 1e3),
+  });
+  await pZKEVMApi.getBlock();
+  await songbirdApi.getBlock();
   // await evmosApi.getBlock()
 });
 
@@ -162,16 +167,15 @@ test("getLogs supports it's old API", async () => {
         "0x65fae35e00000000000000000000000000000000000000000000000000000000",
       ],
     } as any)
-  ).output.slice(0, 2)
-  logs.forEach((log: any) => log.address = log.address.toLowerCase())
+  ).output.slice(0, 2);
+  logs.forEach((log: any) => (log.address = log.address.toLowerCase()));
   expect(logs).toEqual([
     {
       address: "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b",
       blockHash:
         "0x4e0c6d0ceaade9476d0798a44452117c42300389f43ad8397e91092827019fed",
       blockNumber: 8928152,
-      data:
-        "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e065fae35e000000000000000000000000baa65281c2fa2baacb2cb550ba051525a480d3f40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      data: "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e065fae35e000000000000000000000000baa65281c2fa2baacb2cb550ba051525a480d3f40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
       index: 64,
       logIndex: 64,
       removed: false,
@@ -191,8 +195,7 @@ test("getLogs supports it's old API", async () => {
       blockHash:
         "0x4e0c6d0ceaade9476d0798a44452117c42300389f43ad8397e91092827019fed",
       blockNumber: 8928152,
-      data:
-        "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e065fae35e00000000000000000000000065c79fcb50ca1594b025960e539ed7a9a6d434a30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      data: "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e065fae35e00000000000000000000000065c79fcb50ca1594b025960e539ed7a9a6d434a30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
       index: 68,
       logIndex: 68,
       removed: false,
@@ -220,16 +223,15 @@ test("sushiswap getLogs follow the old API", async () => {
       fromBlock: 10794229,
       topic: "PairCreated(address,address,address,uint256)",
     })
-  ).output.slice(0, 2)
-  logs.forEach((log: any) => log.address = log.address.toLowerCase())
+  ).output.slice(0, 2);
+  logs.forEach((log: any) => (log.address = log.address.toLowerCase()));
   expect(logs).toEqual([
     {
       address: "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac",
       blockHash:
         "0xf59ff7fcf1443e7e61582224359a030bb7178871182cc543acb16627e81ec1a8",
       blockNumber: 10794352,
-      data:
-        "0x000000000000000000000000680a025da7b1be2c204d7745e809919bce0740260000000000000000000000000000000000000000000000000000000000000001",
+      data: "0x000000000000000000000000680a025da7b1be2c204d7745e809919bce0740260000000000000000000000000000000000000000000000000000000000000001",
       index: 81,
       logIndex: 81,
       removed: false,
@@ -248,8 +250,7 @@ test("sushiswap getLogs follow the old API", async () => {
       blockHash:
         "0x25c6da25c999e1c668d60a5068128eb521ef121e4b46fb24575ed6fb037ede67",
       blockNumber: 10822038,
-      data:
-        "0x00000000000000000000000006da0fd433c1a5d7a4faa01111c044910a1845530000000000000000000000000000000000000000000000000000000000000002",
+      data: "0x00000000000000000000000006da0fd433c1a5d7a4faa01111c044910a1845530000000000000000000000000000000000000000000000000000000000000002",
       index: 202,
       logIndex: 202,
       removed: false,

@@ -9,20 +9,20 @@ export async function getBalance(params: {
   chain?: Chain;
   logArray?: LogArray;
 }) {
-  if (params.chain === 'tron') return Tron.getBalance(params)
+  if (params.chain === "tron") return Tron.getBalance(params);
   const balance = await getProvider(params.chain).getBalance(
     params.target,
-    params.block
+    params.block,
   );
 
-  const output = handleDecimals(balance, params.decimals)
+  const output = handleDecimals(balance, params.decimals);
 
   if (params.logArray)
     params.logArray.push({
       chain: params.chain ?? "ethereum",
       holder: params.target,
       token: ETHER_ADDRESS,
-      amount: output
+      amount: output,
     });
 
   return {
@@ -37,16 +37,16 @@ export async function getBalances(params: {
   chain?: Chain;
   logArray?: LogArray;
 }) {
-  if (params.chain === 'tron') return Tron.getBalances(params)
+  if (params.chain === "tron") return Tron.getBalances(params);
   const balances = params.targets.map(async (target) => ({
     target,
     balance: handleDecimals(
       await getProvider(params.chain).getBalance(target, params.block),
-      params.decimals
+      params.decimals,
     ),
   }));
 
-  const output = await Promise.all(balances)
+  const output = await Promise.all(balances);
 
   if (params.logArray)
     params.logArray.push(
@@ -54,7 +54,7 @@ export async function getBalances(params: {
         chain: params.chain ?? "ethereum",
         holder,
         token: ETHER_ADDRESS,
-        amount: output[i].balance
+        amount: output[i].balance,
       })),
     );
 

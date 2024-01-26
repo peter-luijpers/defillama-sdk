@@ -1,8 +1,12 @@
 import axios from "axios";
 import { ENV_CONSTANTS } from "./env";
 
-const { S3Client, PutObjectCommand, GetObjectCommand, } = require("@aws-sdk/client-s3");
-const { R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY } = ENV_CONSTANTS
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} = require("@aws-sdk/client-s3");
+const { R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY } = ENV_CONSTANTS;
 
 const datasetBucket = "defillama-datasets";
 const publicBucketUrl = "https://defillama-datasets.llama.fi";
@@ -20,10 +24,13 @@ if (R2_ENDPOINT && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) {
   });
 }
 
-const getKey = (filename: string) => filename.replace(/(:|'|#)/g, '/')
+const getKey = (filename: string) => filename.replace(/(:|'|#)/g, "/");
 
-export async function storeR2JSONString(filename: string, body: string | Buffer) {
-  if (typeof body !== 'string') body = body.toString('base64')
+export async function storeR2JSONString(
+  filename: string,
+  body: string | Buffer,
+) {
+  if (typeof body !== "string") body = body.toString("base64");
   if (!R2) return;
   const command = new PutObjectCommand({
     Bucket: datasetBucket,
@@ -31,18 +38,20 @@ export async function storeR2JSONString(filename: string, body: string | Buffer)
     Body: body,
     ContentType: "application/json",
   });
-  return R2.send(command)
+  return R2.send(command);
 }
 
 export async function getR2JSONString(filename: string) {
   try {
-
-    if (!R2) return await _fetchData()
-    const command = new GetObjectCommand({ Bucket: datasetBucket, Key: getKey(filename), });
+    if (!R2) return await _fetchData();
+    const command = new GetObjectCommand({
+      Bucket: datasetBucket,
+      Key: getKey(filename),
+    });
     const { Body } = await R2.send(command);
-    return await Body.transformToString()
+    return await Body.transformToString();
   } catch (e) {
-    return {}
+    return {};
   }
 
   async function _fetchData() {

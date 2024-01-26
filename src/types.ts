@@ -1,4 +1,3 @@
-
 export type Address = string;
 export type StringNumber = string;
 export type Block = number | string;
@@ -6,13 +5,11 @@ export type Balances = {
   [address: string]: StringNumber | number;
 };
 
-
 type CallParams = string | number | (string | number)[] | undefined;
 export type CallsParams = {
   target?: Address;
   params?: CallParams;
 };
-
 
 export type CallOptions = {
   target: Address;
@@ -22,9 +19,9 @@ export type CallOptions = {
   chain?: Chain | string;
   withMetadata?: boolean;
   skipCache?: boolean;
-  logArray?: LogArray
-}
-export type Chain = string
+  logArray?: LogArray;
+};
+export type Chain = string;
 
 export type MulticallOptions = {
   abi: string | any;
@@ -36,8 +33,8 @@ export type MulticallOptions = {
   withMetadata?: boolean;
   skipCache?: boolean;
   permitFailure?: boolean;
-  logArray?: LogArray
-}
+  logArray?: LogArray;
+};
 
 export type FetchListOptions = {
   lengthAbi?: string | any;
@@ -50,8 +47,8 @@ export type FetchListOptions = {
   startFromOne?: boolean;
   itemCount?: number;
   permitFailure?: boolean;
-  logArray?: LogArray
-}
+  logArray?: LogArray;
+};
 
 export type ByteCodeCallOptions = {
   bytecode: string;
@@ -61,11 +58,11 @@ export type ByteCodeCallOptions = {
   chain?: Chain | string;
   outputTypes: string[];
   withMetadata?: boolean;
-}
+};
 
 export type LogArray = {
   token: Address;
   holder: Address;
   chain: Chain;
-  amount: any
-}[]
+  amount: any;
+}[];

@@ -58,7 +58,7 @@ export async function balanceOf(params: {
 }) {
   const balance: string = await getContract(
     params.target,
-    params.chain
+    params.chain,
   ).balanceOf(params.owner, {
     blockTag: params.block,
   });
