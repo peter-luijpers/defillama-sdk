@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { getProvider, Chain } from "../general";
 import makeMultiCall from "./multicall";
 import convertResults from "./convertResults";
-import { PromisePool } from '@supercharge/promise-pool';
+import { PromisePool } from "@supercharge/promise-pool";
 
 function resolveABI(providedAbi: string | any) {
   let abi = providedAbi;
@@ -76,7 +76,7 @@ export async function multiCall(params: {
   block?: number;
   target?: Address; // Used when calls.target is not provided
   chain?: Chain;
-  requery?:boolean;
+  requery?: boolean;
 }) {
   const abi = resolveABI(params.abi);
   const contractCalls = params.calls.map((call, index) => {
@@ -87,29 +87,25 @@ export async function multiCall(params: {
     };
   });
   // Only a max of around 500 calls are supported by multicall, we have to split bigger batches
-  const chunkSize = 500
-  const contractChunks = []
+  const chunkSize = 500;
+  const contractChunks = [];
   for (let i = 0; i < contractCalls.length; i += chunkSize)
-    contractChunks.push(contractCalls.slice(i, i + chunkSize))
+    contractChunks.push(contractCalls.slice(i, i + chunkSize));
 
-
-  const { results, errors } = await PromisePool
-    .withConcurrency(20)
+  const { results, errors } = await PromisePool.withConcurrency(20)
     .for(contractChunks)
-    .process(async (calls, i) => makeMultiCall(
-      abi,
-      calls,
-      params.chain ?? "ethereum",
-      params.block
-    ))
+    .process(async (calls, i) =>
+      makeMultiCall(abi, calls, params.chain ?? "ethereum", params.block)
+    );
 
-  if (errors.length)
-    throw errors[0]
+  if (errors.length) throw errors[0];
 
-  const flatResults = [].concat.apply([], results) as any[]
+  const flatResults = [].concat.apply([], results) as any[];
 
-  if (params.requery === true && flatResults.some(r => !r.success)) {
-    const failed = flatResults.map((r, i) => [r, i]).filter(r => !r[0].success)
+  if (params.requery === true && flatResults.some((r) => !r.success)) {
+    const failed = flatResults
+      .map((r, i) => [r, i])
+      .filter((r) => !r[0].success);
     const newResults = await multiCall({
       abi: params.abi,
       chain: params.chain,
@@ -118,8 +114,8 @@ export async function multiCall(params: {
       requery: params.requery,
     }).then(({ output }) => output);
     failed.forEach((f, i) => {
-      flatResults[f[1]] = newResults[i]
-    })
+      flatResults[f[1]] = newResults[i];
+    });
   }
   return {
     output: flatResults, // flatten array
